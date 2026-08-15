@@ -1,19 +1,38 @@
-import { createRequire } from 'module';
-
-// pdf-parse is a CommonJS-only package.
-// Using createRequire is the most reliable way to import CJS packages
-// from ESM in Node.js serverless environments (Vercel ncc bundler safe).
-const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+import { ai, MODEL_NAME } from '../config/gemini.config.js';
 
 /**
- * Extracts plain text from a PDF buffer.
- * Uses pdf-parse (server-native) instead of pdfjs-dist (browser-first)
- * to avoid the "Cannot find module pdf.worker.mjs" error in Vercel serverless.
+ * Extracts plain text from a PDF buffer using Gemini's native PDF understanding.
+ *
+ * This completely avoids pdfjs-dist (and any library that wraps it like pdf-parse),
+ * which crash in Vercel serverless because they cannot load a Web Worker.
+ *
+ * Gemini 2.5 Flash natively understands PDFs via inline base64 data — no parsing
+ * library required at all.
  */
 const extractTextFromPdf = async (buffer) => {
-  const data = await pdfParse(buffer);
-  return data.text.trim();
+  const base64Data = buffer.toString('base64');
+
+  const response = await ai.models.generateContent({
+    model: MODEL_NAME,
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: 'application/pdf',
+              data: base64Data,
+            },
+          },
+          {
+            text: 'Extract ALL text content from this PDF resume. Return ONLY the raw extracted text, preserving the original structure and order of sections (contact info, summary, experience, education, skills, projects, certifications). Do not add any commentary or formatting — just the text.',
+          },
+        ],
+      },
+    ],
+  });
+
+  return response.text;
 };
 
 export default extractTextFromPdf;
