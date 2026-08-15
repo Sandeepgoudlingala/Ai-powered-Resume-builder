@@ -74,11 +74,12 @@ function HomePage() {
     if (!uploadFile) return;
     setIsUploading(true);
     try {
-      const resume = await uploadResume(uploadFile);
+      const result = await uploadResume(uploadFile);
       toast.success('Resume parsed and imported!');
       setShowUpload(false);
       setUploadFile(null);
-      navigate(`/builder/${resume._id}`);
+      // result is { success, data: resume } — use result.data._id
+      navigate(`/builder/${result.data._id}`);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to parse resume');
     }

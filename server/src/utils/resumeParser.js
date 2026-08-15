@@ -1,4 +1,10 @@
-import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { createRequire } from 'module';
+
+// pdf-parse is a CommonJS-only package.
+// Using createRequire is the most reliable way to import CJS packages
+// from ESM in Node.js serverless environments (Vercel ncc bundler safe).
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 
 /**
  * Extracts plain text from a PDF buffer.
