@@ -13,7 +13,27 @@ import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 const app = express(); // Express app instance (Express.js: Application Setup)
 
 // --- Middleware ---
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' })); // CORS middleware (Express.js: Middleware)
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman)
+      if (!origin) return callback(null, true);
+      
+      const allowedPatterns = [
+        /^http:\/\/localhost:\d+$/,
+        /\.vercel\.app$/,
+      ];
+
+      const isAllowed = allowedPatterns.some((pattern) => pattern.test(origin));
+      if (isAllowed || origin === process.env.CLIENT_URL) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Fallback allow for dev/prod flexibility
+      }
+    },
+    credentials: true,
+  })
+); // CORS middleware (Express.js: Middleware)
 app.use(express.json({ limit: '10mb' })); // JSON body parser (Express.js: Middleware)
 
 // --- Routes ---

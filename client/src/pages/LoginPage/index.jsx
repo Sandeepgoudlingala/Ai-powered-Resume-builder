@@ -43,7 +43,8 @@ function LoginPage() {
       toast.success('Welcome!');
       navigate('/home');
     } catch (error) {
-      toast.error('Google login failed');
+      console.error('Google auth failed:', error);
+      toast.error(error.response?.data?.message || error.message || 'Google login failed');
     }
   };
 
@@ -67,13 +68,17 @@ function LoginPage() {
         </p>
 
         {/* Google Login */}
-        <div className="flex-center mb-md">
+        <div className="flex-center mb-md" style={{ width: '100%' }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={() => toast.error('Google login failed')}
+            onError={(err) => {
+              console.error('Google OAuth popup error:', err);
+              toast.error('Google OAuth failed');
+            }}
+            useOneTap={false}
             theme="outline"
             size="large"
-            width="100%"
+            width="350"
             text={isRegister ? 'signup_with' : 'signin_with'}
           />
         </div>

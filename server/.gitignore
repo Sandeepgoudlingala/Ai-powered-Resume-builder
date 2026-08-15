@@ -1,2 +1,4 @@
 git initnode_modules/
 .env
+
+.vercel
